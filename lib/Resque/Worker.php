@@ -50,6 +50,12 @@ class Resque_Worker
 	private $child = null;
 
 	/**
+	 * @var bool When true, the worker will stay alive and process more than one job.
+	 *           Otherwise the worker shuts down after the first successful job
+	 */
+	private $stayAlive = false;
+
+	/**
 	 * Return all workers known to Resque as instantiated instances.
 	 * @return array
 	 */
@@ -509,6 +515,10 @@ class Resque_Worker
 		Resque_Stat::incr('processed');
 		Resque_Stat::incr('processed:' . (string)$this);
 		Resque::redis()->del('worker:' . (string)$this);
+
+		if (!$this->stayAlive) {
+			$this->shutdown();
+		}
 	}
 
 	/**
@@ -556,6 +566,14 @@ class Resque_Worker
 	public function setLogger(Psr\Log\LoggerInterface $logger)
 	{
 		$this->logger = $logger;
+	}
+
+	/**
+	 * @param boolean $stayAlive
+	 */
+	public function setStayAlive($stayAlive)
+	{
+		$this->stayAlive = $stayAlive;
 	}
 }
 ?>
