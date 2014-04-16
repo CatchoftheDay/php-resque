@@ -9,6 +9,8 @@
  */
 class Resque_Worker
 {
+    const HALT_FLAG_KEY = 'resque:workers:halt';
+
 	/**
 	* @var LoggerInterface Logging object that impliments the PSR-3 LoggerInterface
 	*/
@@ -165,7 +167,11 @@ class Resque_Worker
 					$this->updateProcLine('Waiting for ' . implode(',', $this->queues) . ' with interval ' . $interval);
 				}
 
-				$job = $this->reserve($blocking, $interval);
+                if (Resque::redis()->getBit(self::HALT_FLAG_KEY, 0) == 1) {
+                    $this->logger->log(Psr\Log\LogLevel::INFO, 'Worker is halted');
+                } else {
+				    $job = $this->reserve($blocking, $interval);
+                }
 			}
 
 			if(!$job) {
