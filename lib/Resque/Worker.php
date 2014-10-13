@@ -9,7 +9,7 @@
  */
 class Resque_Worker
 {
-    const HALT_FLAG_KEY = 'resque:workers:halt';
+	const HALT_FLAG_KEY = 'resque:workers:halt';
 
 	/**
 	* @var LoggerInterface Logging object that impliments the PSR-3 LoggerInterface
@@ -56,6 +56,36 @@ class Resque_Worker
 	 *           Otherwise the worker shuts down after the first successful job
 	 */
 	private $stayAlive = false;
+
+	/**
+	 * Instantiate a new worker, given a list of queues that it should be working
+	 * on. The list of queues should be supplied in the priority that they should
+	 * be checked for jobs (first come, first served)
+	 *
+	 * Passing a single '*' allows the worker to work on all queues in alphabetical
+	 * order. You can easily add new queues dynamically and have them worked on using
+	 * this method.
+	 *
+	 * @param string|array $queues String with a single queue name, array with multiple.
+	 */
+	public function __construct($queues)
+	{
+		$this->logger = new Resque_Log();
+		
+		if(!is_array($queues)) {
+			$queues = array($queues);
+		}
+
+		$this->queues = $queues;
+		if(function_exists('gethostname')) {
+			$hostname = gethostname();
+		}
+		else {
+			$hostname = php_uname('n');
+		}
+		$this->hostname = $hostname;
+		$this->id = $this->hostname . ':'.getmypid() . ':' . implode(',', $this->queues);
+	}
 
 	/**
 	 * Return all workers known to Resque as instantiated instances.
@@ -116,30 +146,6 @@ class Resque_Worker
 	}
 
 	/**
-	 * Instantiate a new worker, given a list of queues that it should be working
-	 * on. The list of queues should be supplied in the priority that they should
-	 * be checked for jobs (first come, first served)
-	 *
-	 * Passing a single '*' allows the worker to work on all queues in alphabetical
-	 * order. You can easily add new queues dynamically and have them worked on using
-	 * this method.
-	 *
-	 * @param string|array $queues String with a single queue name, array with multiple.
-	 */
-	public function __construct($queues)
-	{
-		if(!is_array($queues)) {
-			$queues = array($queues);
-		}
-
-		$this->queues = $queues;
-		$hostname = php_uname('n');
-
-		$this->hostname = $hostname;
-		$this->id = $this->hostname . ':'.getmypid() . ':' . implode(',', $this->queues);
-	}
-
-	/**
 	 * The primary loop for a worker which when called on an instance starts
 	 * the worker's life cycle.
 	 *
@@ -167,11 +173,11 @@ class Resque_Worker
 					$this->updateProcLine('Waiting for ' . implode(',', $this->queues) . ' with interval ' . $interval);
 				}
 
-                if (Resque::redis()->getBit(self::HALT_FLAG_KEY, 0) == 1) {
-                    $this->logger->log(Psr\Log\LogLevel::INFO, 'Worker is halted');
-                } else {
-				    $job = $this->reserve($blocking, $interval);
-                }
+				if (Resque::redis()->getBit(self::HALT_FLAG_KEY, 0) == 1) {
+					$this->logger->log(Psr\Log\LogLevel::INFO, 'Worker is halted');
+				} else {
+					$job = $this->reserve($blocking, $interval);
+				}
 			}
 
 			if(!$job) {
