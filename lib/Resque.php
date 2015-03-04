@@ -158,10 +158,14 @@ class Resque
 		$list[] = 'queue:' . $queue;
 	    }
 
+	    if (count($list) == 0) {
+	    	return null;
+	    }
+
 	    $item = self::redis()->blpop($list, (int)$timeout);
 
 	    if(!$item) {
-		return;
+		return null;
 	    }
 
 	    /**
