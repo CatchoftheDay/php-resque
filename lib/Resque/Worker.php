@@ -37,6 +37,11 @@ class Resque_Worker
 	private $paused = false;
 
 	/**
+	 * @var boolean True if this worker is halted.
+	 */
+	private $halted = false;
+
+	/**
 	 * @var string String identifying this worker.
 	 */
 	private $id;
@@ -169,8 +174,10 @@ class Resque_Worker
 				}
 
 				if (Resque::redis()->getBit(self::HALT_FLAG_KEY, 0) == 1) {
+					$this->halted = true;
 					$this->logger->log(Psr\Log\LogLevel::INFO, 'Worker is halted');
 				} else {
+					$this->halted = false;
 					$job = $this->reserve($blocking, $interval);
 				}
 			}
@@ -181,7 +188,7 @@ class Resque_Worker
 					break;
 				}
 
-				if($blocking === false)
+				if($blocking === false || $this->halted)
 				{
 					// If no job was found, we sleep for $interval before continuing and checking again
 					$this->logger->log(Psr\Log\LogLevel::INFO, 'Sleeping for {interval}', array('interval' => $interval));
