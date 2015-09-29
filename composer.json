@@ -30,9 +30,9 @@
 	"require-dev": {
 		"phpunit/phpunit": "3.7.*"
 	},
-    "provide": {
-        "chrisboulton/php-resque": "dev-master"
-    },
+	"provide": {
+		"chrisboulton/php-resque": "*"
+	},
 	"bin": [
 		"bin/resque"
 	],
