@@ -1,4 +1,6 @@
 <?php
+declare(ticks = 1);
+
 /**
  * Resque worker that handles checking queues for jobs, fetching them
  * off the queues, running them and handling the result.
@@ -62,17 +64,17 @@ class Resque_Worker
 	 */
 	private $stayAlive = false;
 
-	/**
-	 * Instantiate a new worker, given a list of queues that it should be working
-	 * on. The list of queues should be supplied in the priority that they should
-	 * be checked for jobs (first come, first served)
-	 *
-	 * Passing a single '*' allows the worker to work on all queues in alphabetical
-	 * order. You can easily add new queues dynamically and have them worked on using
-	 * this method.
-	 *
-	 * @param string|array $queues String with a single queue name, array with multiple.
-	 */
+    /**
+     * Instantiate a new worker, given a list of queues that it should be working
+     * on. The list of queues should be supplied in the priority that they should
+     * be checked for jobs (first come, first served)
+     *
+     * Passing a single '*' allows the worker to work on all queues in alphabetical
+     * order. You can easily add new queues dynamically and have them worked on using
+     * this method.
+     *
+     * @param string|array $queues String with a single queue name, array with multiple.
+     */
 	public function __construct($queues)
 	{
 		$this->logger = new Resque_Log();
@@ -257,7 +259,7 @@ class Resque_Worker
 			$job->perform();
 		}
 		catch(Exception $e) {
-			$this->logger->log(Psr\Log\LogLevel::CRITICAL, '{job} has failed {stack}', array('job' => $job, 'stack' => $e->getMessage()));
+			$this->logger->log(Psr\Log\LogLevel::CRITICAL, '{job} has failed {stack}', array('job' => $job, 'stack' => $e));
 			$job->fail($e);
 			return;
 		}
@@ -341,8 +343,8 @@ class Resque_Worker
 	private function updateProcLine($status)
 	{
 		$processTitle = 'resque-' . Resque::VERSION . ': ' . $status;
-		if(function_exists('cli_set_process_title')) {
-			@cli_set_process_title($processTitle);
+		if(function_exists('cli_set_process_title') && PHP_OS !== 'Darwin') {
+			cli_set_process_title($processTitle);
 		}
 		else if(function_exists('setproctitle')) {
 			setproctitle($processTitle);
@@ -363,7 +365,6 @@ class Resque_Worker
 			return;
 		}
 
-		declare(ticks = 1);
 		pcntl_signal(SIGTERM, array($this, 'shutDownNow'));
 		pcntl_signal(SIGINT, array($this, 'shutDownNow'));
 		pcntl_signal(SIGQUIT, array($this, 'shutdown'));
@@ -590,4 +591,3 @@ class Resque_Worker
 		$this->stayAlive = $stayAlive;
 	}
 }
-?>
