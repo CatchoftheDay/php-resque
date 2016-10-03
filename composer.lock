@@ -1,10 +1,11 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "1862fac0c6f40ddf7d98bcef5f4bbd77",
+    "hash": "acb411df21e7e1fea8db4de1c6ac7d9a",
+    "content-hash": "37ff2b9c28e3030461081d3675705a2f",
     "packages": [
         {
             "name": "colinmollenhour/credis",
@@ -500,18 +501,12 @@
             "time": "2014-05-16 14:25:18"
         }
     ],
-    "aliases": [
-
-    ],
+    "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [
-
-    ],
+    "stability-flags": [],
     "platform": {
         "php": ">=5.3.0",
         "ext-pcntl": "*"
     },
-    "platform-dev": [
-
-    ]
+    "platform-dev": []
 }
