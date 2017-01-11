@@ -75,19 +75,19 @@ class Resque_Worker
      *
      * @param string|array $queues String with a single queue name, array with multiple.
      */
-	public function __construct($queues)
-	{
-		$this->logger = new Resque_Log();
-		
-		if(!is_array($queues)) {
-			$queues = array($queues);
-		}
+    public function __construct($queues)
+    {
+        $this->logger = new Resque_Log();
 
-		$this->queues = $queues;
-		$this->hostname = php_uname('n');
-        
-		$this->id = $this->hostname . ':'.getmypid() . ':' . implode(',', $this->queues);
-	}
+        if(!is_array($queues)) {
+            $queues = array($queues);
+        }
+
+        $this->queues = $queues;
+        $this->hostname = php_uname('n');
+
+        $this->id = $this->hostname . ':'.getmypid() . ':' . implode(',', $this->queues);
+    }
 
 	/**
 	 * Return all workers known to Resque as instantiated instances.
