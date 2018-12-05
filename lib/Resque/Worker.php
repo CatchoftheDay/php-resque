@@ -89,23 +89,30 @@ class Resque_Worker
         $this->id = $this->hostname . ':'.getmypid() . ':' . implode(',', $this->queues);
     }
 
-	/**
-	 * Return all workers known to Resque as instantiated instances.
-	 * @return array
-	 */
-	public static function all()
-	{
-		$workers = Resque::redis()->smembers('workers');
-		if(!is_array($workers)) {
-			$workers = array();
-		}
+    /**
+     * Return all workers known to Resque as instantiated instances.
+     * @param string|null $hostname Limit to specific hostname. Will return all hosts if null
+     * @return array
+     */
+    public static function all(string $hostname = null)
+    {
+        $workers = Resque::redis()->smembers('workers');
+        if(!is_array($workers)) {
+            $workers = array();
+        }
 
-		$instances = array();
-		foreach($workers as $workerId) {
-			$instances[] = self::find($workerId);
-		}
-		return $instances;
-	}
+        $instances = array();
+        foreach($workers as $workerId) {
+            if (null !== $hostname) {
+                if (strpos($workerId, $hostname.':') !== 0) {
+                    continue;
+                }
+            }
+            $instances[] = self::find($workerId);
+        }
+
+        return $instances;
+    }
 
 	/**
 	 * Given a worker ID, check if it is registered/valid.
@@ -447,7 +454,7 @@ class Resque_Worker
 	public function pruneDeadWorkers()
 	{
 		$workerPids = $this->workerPids();
-		$workers = self::all();
+		$workers = self::all($this->hostname);
 		foreach($workers as $worker) {
 			if (is_object($worker)) {
 				list($host, $pid, $queues) = explode(':', (string)$worker, 3);
